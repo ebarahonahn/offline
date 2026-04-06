@@ -27,7 +27,7 @@ export const routes: Routes = [
         loadComponent: () => import('./features/jornada/jornadas-list/jornadas-list.component').then(m => m.JornadasListComponent),
       },
       {
-        path: 'jornada/:id/reporte',
+        path: 'jornada/:token/reporte',
         loadComponent: () => import('./features/jornada/jornada-reporte/jornada-reporte.component').then(m => m.JornadaReporteComponent),
       },
       {

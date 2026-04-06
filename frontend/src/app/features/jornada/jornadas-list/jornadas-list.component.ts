@@ -140,7 +140,7 @@ import { RolPipe } from '../../../shared/pipes/rol.pipe';
                       <span [class]="estadoClass(jornada.estado)">{{ jornada.estado }}</span>
                     </td>
                     <td class="px-4 py-3 text-right">
-                      <a [routerLink]="['/jornada', jornada.id, 'reporte']"
+                      <a [routerLink]="['/jornada', encodeId(jornada.id), 'reporte']"
                          class="inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-medium
                                 bg-primary-50 text-primary-700 hover:bg-primary-100
                                 dark:bg-primary-900/20 dark:text-primary-400 dark:hover:bg-primary-900/40 transition-colors whitespace-nowrap">
@@ -182,6 +182,8 @@ import { RolPipe } from '../../../shared/pipes/rol.pipe';
   `,
 })
 export class JornadasListComponent implements OnInit {
+  readonly encodeId = (id: number) => btoa(String(id));
+
   private jornadaService      = inject(JornadaService);
   private usuarioService      = inject(UsuarioService);
   private departamentoService = inject(DepartamentoService);

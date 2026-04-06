@@ -248,10 +248,16 @@ export class JornadaReporteComponent implements OnInit {
   error        = signal('');
   exportando   = signal(false);
 
+  private decodeId(): number | null {
+    const token = this.route.snapshot.paramMap.get('token');
+    if (!token) return null;
+    try { return parseInt(atob(token), 10); } catch { return null; }
+  }
+
   ngOnInit() {
-    const id = this.route.snapshot.paramMap.get('id');
+    const id = this.decodeId();
     if (id) {
-      this.jornadaService.getReporte(parseInt(id, 10)).subscribe({
+      this.jornadaService.getReporte(id).subscribe({
         next: (r) => { if (r.success) this.reporte.set(r.data); },
         error: (err) => this.error.set(err.error?.message ?? 'Error al cargar el reporte'),
       });
@@ -259,10 +265,10 @@ export class JornadaReporteComponent implements OnInit {
   }
 
   exportarPDF() {
-    const id = this.route.snapshot.paramMap.get('id');
+    const id = this.decodeId();
     if (!id) return;
     this.exportando.set(true);
-    this.http.get(this.jornadaService.getReportePDFUrl(parseInt(id, 10)), { responseType: 'blob' })
+    this.http.get(this.jornadaService.getReportePDFUrl(id), { responseType: 'blob' })
       .subscribe({
         next: (blob) => {
           const url  = URL.createObjectURL(blob);
