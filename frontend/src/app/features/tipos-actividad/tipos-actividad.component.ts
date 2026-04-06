@@ -2,6 +2,8 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { TipoActividadService, TipoActividad } from '../../core/services/tipo-actividad.service';
+import { DepartamentoService, Departamento } from '../../core/services/departamento.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-tipos-actividad',
@@ -32,16 +34,28 @@ import { TipoActividadService, TipoActividad } from '../../core/services/tipo-ac
           <ul class="divide-y divide-gray-100 dark:divide-gray-800">
             @for (tipo of tipos(); track tipo.id) {
               <li class="flex items-center justify-between px-5 py-3.5 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 min-w-0">
                   <!-- Muestra de color -->
                   <span class="h-8 w-8 rounded-lg shrink-0 border border-black/10 dark:border-white/10"
                         [style.background]="tipo.color_hex"></span>
-                  <div>
+                  <div class="min-w-0">
                     <p class="text-sm font-medium text-gray-900 dark:text-white">{{ tipo.nombre }}</p>
                     <p class="text-xs text-gray-400 font-mono">{{ tipo.color_hex }}</p>
+                    <!-- Departamentos asociados -->
+                    @if (tipo.departamentos && tipo.departamentos.length > 0) {
+                      <div class="flex flex-wrap gap-1 mt-1">
+                        @for (dep of tipo.departamentos; track dep.id) {
+                          <span class="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 text-xs text-blue-700 dark:text-blue-300">
+                            {{ dep.nombre }}
+                          </span>
+                        }
+                      </div>
+                    } @else {
+                      <span class="text-xs text-gray-400 dark:text-gray-500 italic">Todos los departamentos</span>
+                    }
                   </div>
                 </div>
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 shrink-0 ml-3">
                   <!-- Quién desactivó (solo si está inactivo) -->
                   @if (!tipo.activo && eliminadoPor(tipo)) {
                     <span class="text-xs text-gray-400 dark:text-gray-500 hidden sm:inline"
@@ -91,7 +105,7 @@ import { TipoActividadService, TipoActividad } from '../../core/services/tipo-ac
     <!-- Modal crear / editar -->
     @if (showForm()) {
       <div class="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div class="card p-6 w-full max-w-sm mx-4 shadow-2xl">
+        <div class="card p-6 w-full max-w-md mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
           <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-5">
             {{ editando() ? 'Editar Tipo' : 'Nuevo Tipo de Actividad' }}
           </h3>
@@ -135,6 +149,37 @@ import { TipoActividadService, TipoActividad } from '../../core/services/tipo-ac
               </span>
             </div>
 
+            <!-- Departamentos -->
+            <div>
+              <label class="form-label">Departamentos</label>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                Sin selección = visible para todos los departamentos.
+              </p>
+              @if (cargandoDeps()) {
+                <div class="flex items-center gap-2 text-sm text-gray-400 py-2">
+                  <div class="h-4 w-4 animate-spin rounded-full border-2 border-primary-500 border-t-transparent"></div>
+                  Cargando...
+                </div>
+              } @else {
+                <div class="rounded-lg border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-800 max-h-48 overflow-y-auto">
+                  @for (dep of departamentos(); track dep.id) {
+                    <label class="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                      <input type="checkbox"
+                             [checked]="isDepartamentoSeleccionado(dep.id)"
+                             (change)="toggleDepartamento(dep.id)"
+                             class="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                      <span class="text-sm text-gray-700 dark:text-gray-300">{{ dep.nombre }}</span>
+                      @if (!dep.activo) {
+                        <span class="text-xs text-gray-400">(inactivo)</span>
+                      }
+                    </label>
+                  } @empty {
+                    <p class="px-4 py-3 text-sm text-gray-400">No hay departamentos disponibles</p>
+                  }
+                </div>
+              }
+            </div>
+
             @if (formError()) {
               <p class="text-sm text-red-500">{{ formError() }}</p>
             }
@@ -152,15 +197,21 @@ import { TipoActividadService, TipoActividad } from '../../core/services/tipo-ac
   `,
 })
 export class TiposActividadComponent implements OnInit {
-  private svc = inject(TipoActividadService);
-  private fb  = inject(FormBuilder);
+  private svc    = inject(TipoActividadService);
+  private depSvc = inject(DepartamentoService);
+  private fb     = inject(FormBuilder);
 
-  tipos    = signal<TipoActividad[]>([]);
-  cargando = signal(false);
-  showForm = signal(false);
-  saving   = signal(false);
-  formError = signal('');
-  editando  = signal<TipoActividad | null>(null);
+  tipos         = signal<TipoActividad[]>([]);
+  departamentos = signal<Departamento[]>([]);
+  cargando      = signal(false);
+  cargandoDeps  = signal(false);
+  showForm      = signal(false);
+  saving        = signal(false);
+  formError     = signal('');
+  editando      = signal<TipoActividad | null>(null);
+
+  /** IDs de departamentos seleccionados en el modal */
+  selectedDeps = signal<Set<number>>(new Set());
 
   readonly colorPresets = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6'];
 
@@ -169,7 +220,12 @@ export class TiposActividadComponent implements OnInit {
     color_hex: ['#6366f1'],
   });
 
-  ngOnInit() { this.load(); }
+  ngOnInit() {
+    this.load();
+    this.depSvc.getAll().subscribe(r => {
+      if (r.success) this.departamentos.set(r.data ?? []);
+    });
+  }
 
   load() {
     this.cargando.set(true);
@@ -183,6 +239,7 @@ export class TiposActividadComponent implements OnInit {
     this.editando.set(null);
     this.form.reset({ nombre: '', color_hex: '#6366f1' });
     this.formError.set('');
+    this.selectedDeps.set(new Set());
     this.showForm.set(true);
   }
 
@@ -190,12 +247,29 @@ export class TiposActividadComponent implements OnInit {
     this.editando.set(tipo);
     this.form.reset({ nombre: tipo.nombre, color_hex: tipo.color_hex });
     this.formError.set('');
+    // Pre-cargar departamentos ya asignados
+    const asignados = tipo.departamentos?.map(d => d.id) ?? [];
+    this.selectedDeps.set(new Set(asignados));
     this.showForm.set(true);
   }
 
   closeForm() {
     this.showForm.set(false);
     this.editando.set(null);
+  }
+
+  isDepartamentoSeleccionado(id: number): boolean {
+    return this.selectedDeps().has(id);
+  }
+
+  toggleDepartamento(id: number) {
+    const current = new Set(this.selectedDeps());
+    if (current.has(id)) {
+      current.delete(id);
+    } else {
+      current.add(id);
+    }
+    this.selectedDeps.set(current);
   }
 
   submit() {
@@ -205,12 +279,26 @@ export class TiposActividadComponent implements OnInit {
 
     const payload = this.form.value as { nombre: string; color_hex: string };
     const ed = this.editando();
-    const req = ed ? this.svc.update(ed.id, payload) : this.svc.create(payload);
+    const depIds = Array.from(this.selectedDeps());
 
-    req.subscribe({
+    const saveReq = ed ? this.svc.update(ed.id, payload) : this.svc.create(payload);
+
+    saveReq.subscribe({
       next: (r) => {
-        if (r.success) { this.load(); this.closeForm(); }
-        this.saving.set(false);
+        if (!r.success) {
+          this.saving.set(false);
+          return;
+        }
+        const tipoId = r.data!.id;
+        // Guardar departamentos
+        this.svc.setDepartamentos(tipoId, depIds).subscribe({
+          next: () => { this.load(); this.closeForm(); this.saving.set(false); },
+          error: (err) => {
+            this.formError.set(err.userMessage ?? 'Error al guardar departamentos');
+            this.saving.set(false);
+            this.load();
+          },
+        });
       },
       error: (err) => {
         this.formError.set(err.userMessage ?? 'Error al guardar');

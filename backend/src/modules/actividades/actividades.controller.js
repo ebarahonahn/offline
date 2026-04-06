@@ -46,7 +46,7 @@ const aprobar = async (req, res, next) => {
 
 const getTipos = async (req, res, next) => {
   try {
-    const tipos = await service.getTipos();
+    const tipos = await service.getTipos(req.user.id);
     ok(res, tipos);
   } catch (err) { next(err); }
 };

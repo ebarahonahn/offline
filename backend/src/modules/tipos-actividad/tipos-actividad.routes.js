@@ -6,10 +6,12 @@ const { auditLog } = require('../../middlewares/audit.middleware');
 
 router.use(authenticate);
 
-router.get('/',              ctrl.getAll);
-router.get('/:id',           ctrl.getById);
-router.post('/',             authorize('admin'), auditLog('CREATE_TIPO_ACTIVIDAD', 'tipos_actividad'), ctrl.create);
-router.put('/:id',           authorize('admin'), auditLog('UPDATE_TIPO_ACTIVIDAD', 'tipos_actividad', 'tipos_actividad'), ctrl.update);
-router.patch('/:id/activo',  authorize('admin'), auditLog('TOGGLE_TIPO_ACTIVIDAD', 'tipos_actividad', 'tipos_actividad'), ctrl.toggleActivo);
+router.get('/',                        ctrl.getAll);
+router.get('/:id',                     ctrl.getById);
+router.post('/',                       authorize('admin'), auditLog('CREATE_TIPO_ACTIVIDAD', 'tipos_actividad'), ctrl.create);
+router.put('/:id',                     authorize('admin'), auditLog('UPDATE_TIPO_ACTIVIDAD', 'tipos_actividad', 'tipos_actividad'), ctrl.update);
+router.patch('/:id/activo',            authorize('admin'), auditLog('TOGGLE_TIPO_ACTIVIDAD', 'tipos_actividad', 'tipos_actividad'), ctrl.toggleActivo);
+router.get('/:id/departamentos',       authorize('admin'), ctrl.getDepartamentos);
+router.put('/:id/departamentos',       authorize('admin'), auditLog('SET_DEPARTAMENTOS_TIPO', 'tipos_actividad', 'tipos_actividad'), ctrl.setDepartamentos);
 
 module.exports = router;

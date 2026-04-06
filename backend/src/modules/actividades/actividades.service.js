@@ -130,8 +130,31 @@ const aprobar = async (id, supervisorId) => {
   return getById(id);
 };
 
-const getTipos = async () => {
-  const [rows] = await query('SELECT id, nombre, color_hex FROM tipos_actividad WHERE activo = 1 ORDER BY nombre');
+/**
+ * Retorna los tipos de actividad visibles para un usuario según su departamento.
+ * Regla: tipo global (sin deps asignados) siempre visible.
+ *        tipo con deps asignados: visible solo si el usuario pertenece a uno de esos deps.
+ *        Usuario sin departamento: solo ve tipos globales.
+ */
+const getTipos = async (usuarioId) => {
+  const [rows] = await query(
+    `SELECT ta.id, ta.nombre, ta.color_hex
+     FROM tipos_actividad ta
+     WHERE ta.activo = 1
+       AND ta.deleted_at IS NULL
+       AND (
+         NOT EXISTS (
+           SELECT 1 FROM departamento_tipos_actividad dta WHERE dta.tipo_actividad_id = ta.id
+         )
+         OR EXISTS (
+           SELECT 1 FROM departamento_tipos_actividad dta
+           JOIN usuarios u ON u.departamento_id = dta.departamento_id
+           WHERE dta.tipo_actividad_id = ta.id AND u.id = ?
+         )
+       )
+     ORDER BY ta.nombre`,
+    [usuarioId]
+  );
   return rows;
 };
 

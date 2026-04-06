@@ -29,4 +29,16 @@ const toggleActivo = async (req, res, next) => {
   catch (err) { next(err); }
 };
 
-module.exports = { getAll, getById, create, update, toggleActivo };
+const getDepartamentos = async (req, res, next) => {
+  try { ok(res, await service.getDepartamentos(req.params.id)); }
+  catch (err) { next(err); }
+};
+
+const setDepartamentos = async (req, res, next) => {
+  try {
+    const ids = Array.isArray(req.body.departamento_ids) ? req.body.departamento_ids : [];
+    ok(res, await service.setDepartamentos(req.params.id, ids), 'Departamentos actualizados');
+  } catch (err) { next(err); }
+};
+
+module.exports = { getAll, getById, create, update, toggleActivo, getDepartamentos, setDepartamentos };

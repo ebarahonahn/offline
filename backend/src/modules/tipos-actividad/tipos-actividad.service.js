@@ -11,7 +11,20 @@ const getAll = async () => {
      LEFT JOIN usuarios upd ON upd.id = ta.updated_by
      ORDER BY ta.nombre`
   );
-  return rows;
+
+  // Adjuntar departamentos asignados a cada tipo
+  const [deps] = await query(
+    `SELECT dta.tipo_actividad_id, d.id, d.nombre
+     FROM departamento_tipos_actividad dta
+     JOIN departamentos d ON d.id = dta.departamento_id
+     ORDER BY d.nombre`
+  );
+  const depsByTipo = {};
+  for (const r of deps) {
+    if (!depsByTipo[r.tipo_actividad_id]) depsByTipo[r.tipo_actividad_id] = [];
+    depsByTipo[r.tipo_actividad_id].push({ id: r.id, nombre: r.nombre });
+  }
+  return rows.map(t => ({ ...t, departamentos: depsByTipo[t.id] || [] }));
 };
 
 const getById = async (id) => {
@@ -81,4 +94,38 @@ const toggleActivo = async (id, userId = null) => {
   return getById(id);
 };
 
-module.exports = { getAll, getById, create, update, toggleActivo };
+/** Retorna los departamentos asignados a un tipo de actividad */
+const getDepartamentos = async (tipoId) => {
+  const tipo = await getById(tipoId);
+  if (!tipo) throw Object.assign(new Error('Tipo de actividad no encontrado'), { statusCode: 404 });
+
+  const [rows] = await query(
+    `SELECT d.id, d.nombre
+     FROM departamento_tipos_actividad dta
+     JOIN departamentos d ON d.id = dta.departamento_id
+     WHERE dta.tipo_actividad_id = ?
+     ORDER BY d.nombre`,
+    [tipoId]
+  );
+  return rows;
+};
+
+/** Reemplaza la asignación de departamentos de un tipo de actividad */
+const setDepartamentos = async (tipoId, departamentoIds = []) => {
+  const tipo = await getById(tipoId);
+  if (!tipo) throw Object.assign(new Error('Tipo de actividad no encontrado'), { statusCode: 404 });
+
+  await query('DELETE FROM departamento_tipos_actividad WHERE tipo_actividad_id = ?', [tipoId]);
+
+  if (departamentoIds.length) {
+    const values = departamentoIds.map(dId => [dId, tipoId]);
+    await query(
+      'INSERT INTO departamento_tipos_actividad (departamento_id, tipo_actividad_id) VALUES ?',
+      [values]
+    );
+  }
+
+  return getDepartamentos(tipoId);
+};
+
+module.exports = { getAll, getById, create, update, toggleActivo, getDepartamentos, setDepartamentos };
