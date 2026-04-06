@@ -1,0 +1,126 @@
+Desarrolla un sistema web institucional moderno para el control de tiempo laboral, actividades e inactividad de empleados en modalidad de teletrabajo, enfocado en transparencia, productividad y supervisión en tiempo real.
+
+🧩 Arquitectura Tecnológica
+Frontend: Angular (última versión estable) + Tailwind CSS (diseño moderno, limpio y responsive)
+Backend: Node.js con Express
+Base de Datos: MySQL
+Comunicación: API RESTful
+Autenticación: JWT (JSON Web Tokens)
+Tiempo real (opcional): WebSockets (Socket.io)
+🎯 Objetivo del Sistema
+
+Permitir a las instituciones:
+
+Monitorear la jornada laboral de empleados remotos
+Registrar actividades realizadas
+Detectar tiempos de inactividad
+Generar reportes de productividad
+Supervisar cumplimiento de horarios
+👥 Roles del Sistema
+Administrador
+Gestión de usuarios
+Configuración de horarios laborales
+Visualización global de reportes
+Supervisor
+Monitoreo de empleados asignados
+Validación de actividades
+Empleado
+Registro de inicio/fin de jornada
+Registro de actividades
+Visualización de su propio desempeño
+🧱 Módulos del Sistema
+1. 🔐 Autenticación y Seguridad
+Login con JWT
+Roles y permisos
+Recuperación de contraseña
+2. ⏱️ Control de Jornada
+Registro de:
+Hora de inicio
+Hora de pausa
+Hora de reanudación
+Hora de finalización
+Botones interactivos tipo:
+"Iniciar Jornada"
+"Pausar"
+"Reanudar"
+"Finalizar Jornada"
+3. 📋 Registro de Actividades
+CRUD de actividades:
+Nombre de actividad
+Descripción
+Tiempo dedicado
+Asociación de actividades con jornada laboral
+4. 💤 Detección de Inactividad
+Detectar inactividad por:
+Falta de interacción (mouse/teclado)
+Tiempo configurable (ej: 5 minutos)
+Registro automático de tiempos muertos
+Alertas visuales al usuario
+5. 📊 Panel de Control (Dashboard)
+Gráficas de:
+Tiempo trabajado
+Tiempo inactivo
+Actividades realizadas
+Filtros por:
+Fecha
+Usuario
+Departamento
+6. 📈 Reportes
+Reportes exportables (PDF / Excel)
+Indicadores:
+Productividad diaria
+Horas trabajadas vs inactividad
+Ranking de desempeño
+7. 🛠️ Configuración
+Parámetros del sistema:
+Tiempo de inactividad
+Horarios laborales
+Días laborales
+Gestión de catálogos:
+Tipos de actividad
+Departamentos
+🧮 Base de Datos (Modelo Inicial)
+
+Tablas principales:
+
+usuarios (id, nombre, email, password, rol_id, estado)
+roles (id, nombre)
+jornadas (id, usuario_id, fecha, hora_inicio, hora_fin)
+pausas (id, jornada_id, hora_inicio, hora_fin)
+actividades (id, jornada_id, nombre, descripcion, tiempo)
+inactividad (id, usuario_id, fecha, tiempo_inactivo)
+configuraciones (clave, valor)
+🎨 Requisitos de UI/UX (Angular + Tailwind)
+Diseño moderno tipo dashboard (similar a sistemas SaaS)
+Modo oscuro/claro
+Componentes reutilizables
+Sidebar con navegación
+Indicadores visuales (colores):
+Verde: activo
+Amarillo: pausa
+Rojo: inactivo
+🔌 API (Node.js + Express)
+
+Ejemplo de endpoints:
+
+POST /api/auth/login
+GET /api/usuarios
+POST /api/jornadas/iniciar
+POST /api/jornadas/finalizar
+POST /api/actividades
+GET /api/reportes
+⚙️ Funcionalidades Avanzadas (Opcional)
+Captura de pantalla periódica (configurable)
+Geolocalización del empleado
+Integración con Microsoft Teams o Slack
+Notificaciones en tiempo real
+📦 Entregables Esperados
+Código fuente estructurado (frontend y backend separados)
+Scripts de base de datos MySQL
+Documentación técnica (API + instalación)
+Manual de usuario básico
+🚀 Extras (para hacerlo más institucional)
+Auditoría de acciones (logs)
+Control de sesiones activas
+Escalabilidad (arquitectura modular)
+Buenas prácticas (Clean Code + SOLID)

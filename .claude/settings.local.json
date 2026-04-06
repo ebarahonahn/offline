@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find C:Proyclaudeofflinefrontendsrc -path */node_modules -prune -o -type f \\\\\\(-name *.ts -o -name *.json \\\\\\) -print)",
+      "Bash(node -e ':*)"
+    ]
+  }
+}
