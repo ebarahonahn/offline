@@ -28,37 +28,50 @@ import { RolPipe } from '../../shared/pipes/rol.pipe';
     </div>
 
     <!-- Filtros -->
-    <div class="card p-4">
-      <div class="flex flex-wrap gap-3">
-        <select class="form-input w-auto min-w-[140px]" [(ngModel)]="filtros.estado" (change)="cargar()">
-          <option value="">Todos los estados</option>
+    <div class="card p-4 flex flex-wrap gap-4 items-end">
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-gray-600 dark:text-gray-400">Estado</label>
+        <select class="form-input text-sm" [(ngModel)]="filtros.estado" (change)="cargar()">
+          <option value="">Todos</option>
           <option value="abierto">Abierto</option>
           <option value="en_proceso">En proceso</option>
           <option value="pendiente_usuario">Pendiente usuario</option>
           <option value="resuelto">Resuelto</option>
           <option value="cerrado">Cerrado</option>
         </select>
-        <select class="form-input w-auto min-w-[130px]" [(ngModel)]="filtros.prioridad" (change)="cargar()">
-          <option value="">Toda prioridad</option>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-gray-600 dark:text-gray-400">Prioridad</label>
+        <select class="form-input text-sm" [(ngModel)]="filtros.prioridad" (change)="cargar()">
+          <option value="">Todas</option>
           <option value="urgente">Urgente</option>
           <option value="alta">Alta</option>
           <option value="media">Media</option>
           <option value="baja">Baja</option>
         </select>
-        <select class="form-input w-auto min-w-[140px]" [(ngModel)]="filtros.categoria" (change)="cargar()">
-          <option value="">Toda categoría</option>
+      </div>
+      <div class="flex flex-col gap-1">
+        <label class="text-xs font-medium text-gray-600 dark:text-gray-400">Categoría</label>
+        <select class="form-input text-sm" [(ngModel)]="filtros.categoria" (change)="cargar()">
+          <option value="">Todas</option>
           <option value="error">Error del sistema</option>
           <option value="funcionalidad">Funcionalidad</option>
           <option value="solicitud">Solicitud</option>
           <option value="consulta">Consulta</option>
           <option value="otro">Otro</option>
         </select>
-        @if (esAdmin()) {
-          <input type="date" class="form-input w-auto" [(ngModel)]="filtros.fecha_inicio" (change)="cargar()" placeholder="Desde">
-          <input type="date" class="form-input w-auto" [(ngModel)]="filtros.fecha_fin"    (change)="cargar()" placeholder="Hasta">
-        }
-        <button class="btn-secondary text-sm" (click)="limpiarFiltros()">Limpiar</button>
       </div>
+      @if (esAdmin()) {
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-medium text-gray-600 dark:text-gray-400">Fecha inicio</label>
+          <input type="date" class="form-input text-sm" [(ngModel)]="filtros.fecha_inicio" (change)="cargar()">
+        </div>
+        <div class="flex flex-col gap-1">
+          <label class="text-xs font-medium text-gray-600 dark:text-gray-400">Fecha fin</label>
+          <input type="date" class="form-input text-sm" [(ngModel)]="filtros.fecha_fin" (change)="cargar()">
+        </div>
+      }
+      <button class="btn-secondary text-sm" (click)="limpiarFiltros()">Limpiar</button>
     </div>
 
     <!-- Tabla de tickets -->

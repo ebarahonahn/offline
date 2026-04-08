@@ -5,7 +5,6 @@ import { tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { User, AuthResponse } from '../models/user.model';
 import { ApiResponse } from '../models/api-response.model';
-import { JornadaService } from './jornada.service';
 
 function parseJwt(token: string): Record<string, any> | null {
   try {
@@ -21,8 +20,7 @@ function parseJwt(token: string): Record<string, any> | null {
 export class AuthService {
   private http       = inject(HttpClient);
   private router     = inject(Router);
-  private jornadaSvc = inject(JornadaService);
-  private api        = `${environment.apiUrl}/auth`;
+private api        = `${environment.apiUrl}/auth`;
 
   currentUser     = signal<User | null>(this.loadUser());
   isAuthenticated = computed(() => !!this.currentUser());
@@ -58,16 +56,10 @@ export class AuthService {
     return this.http.post<ApiResponse<AuthResponse>>(`${this.api}/login`, { email, password }).pipe(
       tap(res => {
         if (res.success) {
-          const { accessToken, refreshToken, jornada } = res.data;
+          const { accessToken, refreshToken } = res.data;
           localStorage.setItem('accessToken', accessToken);
           localStorage.setItem('refreshToken', refreshToken);
           this.currentUser.set(this.loadUser());
-          if (jornada) {
-            this.jornadaSvc.jornadaActiva.set(jornada);
-            if (['activa', 'pausada'].includes(jornada.estado)) {
-              this.jornadaSvc['startTimer'](jornada);
-            }
-          }
         }
       })
     );

@@ -22,6 +22,8 @@ const ETIQUETAS_ACCION = {
   DELETE_CAPTURA:         'Eliminar captura',
   REACTIVAR_JORNADA:      'Reactivar jornada',
   UPDATE_CONFIGURACION:   'Modificar configuración',
+  CONSULTAR_JORNADAS:     'Consultar historial de jornadas',
+  VER_REPORTE_JORNADA:    'Ver reporte de jornada',
   REPORTE_JORNADAS:       'Consultar reporte jornadas',
   REPORTE_PRODUCTIVIDAD:  'Consultar productividad',
   EXPORT_EXCEL:           'Exportar Excel',

@@ -47,6 +47,42 @@ export class ReporteService {
     });
   }
 
+  getAsistencias(params: any) {
+    return this.http.get<any>(`${this.api}/asistencias`, { params });
+  }
+
+  exportAsistenciasExcel(params: any) {
+    return this.http.get(`${this.api}/export/asistencias/excel`, {
+      params,
+      responseType: 'blob',
+      observe: 'response',
+    });
+  }
+
+  exportAsistenciasPDF(params: any) {
+    return this.http.get(`${this.api}/export/asistencias/pdf`, {
+      params,
+      responseType: 'blob',
+      observe: 'response',
+    });
+  }
+
+  exportDetalleExcel(params: any) {
+    return this.http.get(`${this.api}/export/asistencias/detalle/excel`, {
+      params,
+      responseType: 'blob',
+      observe: 'response',
+    });
+  }
+
+  exportDetallePDF(params: any) {
+    return this.http.get(`${this.api}/export/asistencias/detalle/pdf`, {
+      params,
+      responseType: 'blob',
+      observe: 'response',
+    });
+  }
+
   downloadBlob(response: any, filename: string) {
     const blob = new Blob([response.body], { type: response.headers.get('content-type') });
     const url  = URL.createObjectURL(blob);

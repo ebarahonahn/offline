@@ -2,9 +2,8 @@ const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const { query, transaction } = require('../../config/database');
 const { signAccessToken, signRefreshToken, verifyToken } = require('../../config/jwt');
-const { toMySQLDatetime, getTodayDate } = require('../../utils/date.util');
+const { toMySQLDatetime } = require('../../utils/date.util');
 const { sendMail } = require('../../config/mailer');
-const { esDiaLaboral } = require('../jornadas/jornadas.service');
 
 const login = async (email, password, ip, userAgent) => {
   const [users] = await query(
@@ -45,31 +44,8 @@ const login = async (email, password, ip, userAgent) => {
     );
   });
 
-  // Iniciar jornada automáticamente si no existe una para hoy y es día laboral
-  let jornada = null;
-  try {
-    const hoy = getTodayDate();
-    const diaLaboral = await esDiaLaboral(new Date().getDay());
-    const [existing] = await query(
-      'SELECT id, estado FROM jornadas WHERE usuario_id = ? AND fecha = ?',
-      [user.id, hoy]
-    );
-    if (!existing.length && diaLaboral) {
-      const [result] = await query(
-        'INSERT INTO jornadas (usuario_id, fecha, hora_inicio, estado, ip_inicio) VALUES (?, ?, NOW(), "activa", ?)',
-        [user.id, hoy, ip]
-      );
-      const [rows] = await query('SELECT * FROM jornadas WHERE id = ?', [result.insertId]);
-      jornada = rows[0] || null;
-    } else {
-      jornada = existing[0] || null;
-    }
-  } catch (err) {
-    console.error('[Auth] No se pudo iniciar jornada automáticamente:', err.message);
-  }
-
   const { password_hash, ...userData } = user;
-  return { accessToken, refreshToken, user: userData, jornada };
+  return { accessToken, refreshToken, user: userData };
 };
 
 const logout = async (sessionId) => {

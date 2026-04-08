@@ -40,6 +40,11 @@ export const routes: Routes = [
         loadComponent: () => import('./features/reportes/productividad/productividad.component').then(m => m.ProductividadComponent),
       },
       {
+        path: 'reportes/asistencias',
+        canActivate: [roleGuard('admin', 'supervisor', 'jefe_departamento')],
+        loadComponent: () => import('./features/reportes/asistencias/asistencias.component').then(m => m.AsistenciasComponent),
+      },
+      {
         path: 'usuarios',
         canActivate: [roleGuard('admin')],
         loadComponent: () => import('./features/usuarios/usuarios-list/usuarios-list.component').then(m => m.UsuariosListComponent),

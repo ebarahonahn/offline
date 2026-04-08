@@ -8,9 +8,9 @@ router.use(authenticate);
 
 router.post('/iniciar',           ctrl.iniciar);
 router.get('/activa',             ctrl.getActiva);
-router.get('/',                   ctrl.getHistorial);
+router.get('/',                   auditLog('CONSULTAR_JORNADAS', 'jornadas'), ctrl.getHistorial);
 router.get('/:id',                ctrl.getById);
-router.get('/:id/reporte',        ctrl.getReporte);
+router.get('/:id/reporte',        auditLog('VER_REPORTE_JORNADA', 'jornadas', 'jornadas'), ctrl.getReporte);
 router.get('/:id/reporte/pdf',    ctrl.getReportePDF);
 router.post('/:id/pausar',        ctrl.pausar);
 router.post('/:id/reanudar',      ctrl.reanudar);

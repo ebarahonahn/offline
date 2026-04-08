@@ -3,6 +3,10 @@ const { generateJornadasExcel }      = require('./generators/excel.generator');
 const { generateJornadasPDF }        = require('./generators/pdf.generator');
 const { generateProductividadExcel } = require('./generators/productividad.excel.generator');
 const { generateProductividadPDF }   = require('./generators/productividad.pdf.generator');
+const { generateAsistenciasExcel }   = require('./generators/asistencias.excel.generator');
+const { generateAsistenciasPDF }     = require('./generators/asistencias.pdf.generator');
+const { generateDetalleExcel }       = require('./generators/detalle.excel.generator');
+const { generateDetallePDF }         = require('./generators/detalle.pdf.generator');
 const { ok, fail }              = require('../../utils/response.util');
 const configService             = require('../configuraciones/configuraciones.service');
 const { query }                 = require('../../config/database');
@@ -127,4 +131,71 @@ const exportProductividadPDF = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-module.exports = { getJornadas, getProductividad, exportExcel, exportPDF, exportProductividadExcel, exportProductividadPDF };
+const getAsistencias = async (req, res, next) => {
+  try {
+    const { fecha_inicio, fecha_fin } = req.query;
+    if (!fecha_inicio || !fecha_fin) return fail(res, 'fecha_inicio y fecha_fin requeridos');
+    const filtros = resolverFiltros(req);
+    const data = await service.getAsistencias(filtros);
+    auditarReporte(req, 'REPORTE_ASISTENCIAS', extraerFiltros(filtros));
+    ok(res, data);
+  } catch (err) { next(err); }
+};
+
+const exportAsistenciasExcel = async (req, res, next) => {
+  try {
+    const { fecha_inicio, fecha_fin } = req.query;
+    if (!fecha_inicio || !fecha_fin) return fail(res, 'fecha_inicio y fecha_fin requeridos');
+    const filtros = resolverFiltros(req);
+    const data    = await service.getAsistencias(filtros);
+    const buffer  = await generateAsistenciasExcel(data, filtros);
+    auditarReporte(req, 'EXPORT_ASISTENCIAS_EXCEL', extraerFiltros(filtros));
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="asistencias_${fecha_inicio}_${fecha_fin}.xlsx"`);
+    res.send(buffer);
+  } catch (err) { next(err); }
+};
+
+const exportAsistenciasPDF = async (req, res, next) => {
+  try {
+    const { fecha_inicio, fecha_fin } = req.query;
+    if (!fecha_inicio || !fecha_fin) return fail(res, 'fecha_inicio y fecha_fin requeridos');
+    const filtros       = resolverFiltros(req);
+    const data          = await service.getAsistencias(filtros);
+    const empresaNombre = await configService.get('empresa_nombre') || 'Mi Institución';
+    const buffer        = await generateAsistenciasPDF(data, filtros, empresaNombre);
+    auditarReporte(req, 'EXPORT_ASISTENCIAS_PDF', extraerFiltros(filtros));
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="asistencias_${fecha_inicio}_${fecha_fin}.pdf"`);
+    res.send(buffer);
+  } catch (err) { next(err); }
+};
+
+const exportDetalleExcel = async (req, res, next) => {
+  try {
+    const { usuario_id, fecha_inicio, fecha_fin } = req.query;
+    if (!usuario_id || !fecha_inicio || !fecha_fin) return fail(res, 'usuario_id, fecha_inicio y fecha_fin son requeridos');
+    const data   = await service.getDetalleEmpleado(usuario_id, fecha_inicio, fecha_fin);
+    const buffer = await generateDetalleExcel(data);
+    auditarReporte(req, 'EXPORT_DETALLE_ASISTENCIA_EXCEL', { usuario_id, fecha_inicio, fecha_fin });
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="detalle_asistencia_${fecha_inicio}_${fecha_fin}.xlsx"`);
+    res.send(buffer);
+  } catch (err) { next(err); }
+};
+
+const exportDetallePDF = async (req, res, next) => {
+  try {
+    const { usuario_id, fecha_inicio, fecha_fin } = req.query;
+    if (!usuario_id || !fecha_inicio || !fecha_fin) return fail(res, 'usuario_id, fecha_inicio y fecha_fin son requeridos');
+    const data          = await service.getDetalleEmpleado(usuario_id, fecha_inicio, fecha_fin);
+    const empresaNombre = await configService.get('empresa_nombre') || 'Mi Institución';
+    const buffer        = await generateDetallePDF(data, empresaNombre);
+    auditarReporte(req, 'EXPORT_DETALLE_ASISTENCIA_PDF', { usuario_id, fecha_inicio, fecha_fin });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="detalle_asistencia_${fecha_inicio}_${fecha_fin}.pdf"`);
+    res.send(buffer);
+  } catch (err) { next(err); }
+};
+
+module.exports = { getJornadas, getProductividad, exportExcel, exportPDF, exportProductividadExcel, exportProductividadPDF, getAsistencias, exportAsistenciasExcel, exportAsistenciasPDF, exportDetalleExcel, exportDetallePDF };
